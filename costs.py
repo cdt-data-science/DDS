@@ -19,8 +19,6 @@ def binary_accuracy(target, prediction, threshold=0.5):
     return T.eq(target, T.ge(prediction, threshold)).mean()
 
 def categorical_accuracy(target,prediction):
-    # target = T.extra_ops.to_one_hot(target,prediction.shape[1])
-    # target = T.argmax(target, axis=1)
     predictions = T.argmax(prediction, axis=1)
     return T.eq(target, predictions.dimshuffle(0,"x")).mean()
 

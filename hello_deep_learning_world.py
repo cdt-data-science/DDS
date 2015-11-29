@@ -4,13 +4,11 @@ import costs
 import helper
 import layers
 import theano
-import lasagne
 
 #Load data
 data = helper.load_data(path=None, return_shared=True)
 train_X, train_y = data["train"]
 val_X, val_y = data["validation"]
-
 
 
 #Some useful variables.
@@ -36,7 +34,7 @@ index1, index2 = theano.tensor.lscalar("index1"), theano.tensor.lscalar("index2"
 X_var = theano.tensor.matrix("X_var")
 y_var = theano.tensor.imatrix("y_var")
 y_pred = net.get_output(X_var)
-hard_pred = theano.tensor.argmax(y_pred, axis=1)
+
 
 #Get cost and updates.
 cost =  costs.categorical_cross_entropy(target=y_var, prediction=y_pred)
@@ -46,14 +44,10 @@ grads = [theano.grad(cost, param) for param in params]
 updates = [(param, param - learning_rate*grad) for param,grad in zip(params,grads)]
 
 
-#Get monitoring channels.
+#Define monitoring channels.
 accuracy = costs.categorical_accuracy(target=y_var, prediction=y_pred)
 
 #Compile functions.
-output_foo = theano.function([index1,index2], outputs=[cost],
-                            givens = {X_var:train_X[index1:index2],
-                                      y_var:train_y[index1:index2],
-                                      }, on_unused_input="warn")
 
 train_foo = theano.function([index1,index2], updates=updates,
                             givens = {X_var:train_X[index1:index2],
@@ -62,7 +56,6 @@ train_foo = theano.function([index1,index2], updates=updates,
 get_accuracy = theano.function(inputs=[index1, index2], outputs=accuracy,
                                givens = {X_var:val_X[index1:index2],
                                       y_var:val_y[index1:index2]})
-
 
 
 for epoch in range(n_epochs):
