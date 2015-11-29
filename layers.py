@@ -16,7 +16,7 @@ class Layer(object):
         pass
 
     def get_params(self):
-        #Returns a list of parameters which are theano shared variables.
+        #Returns a list of paramaters which are theano shared variables.
         pass
 
 
@@ -35,17 +35,17 @@ class AffineLayer(Layer):
             W = self.init_W(self.input_dim, self.output_dim)
 
         else:
-            W = np.random.uniform(0,0.01, (self.output_dim,self.input_dim))
+            W = np.random.uniform(-0.01,0.01, (self.input_dim,self.output_dim))
 
         self.W = theano.shared(np.asarray(W,dtype = theano.config.floatX), self.name+"_W")
         if self.init_b is not None:
             b = self.init_b(self.output_dim)
         else:
-            b = np.zeros((self.output_dim,))
+            b = np.ones((self.output_dim,))
         self.b = theano.shared(np.asarray(b,dtype = theano.config.floatX), self.name+"_b")
 
     def get_output(self, input_var):
-        return T.dot(input_var, self.W) + self.b
+        return T.dot(input_var, self.W) + self.b.dimshuffle("x",0)
 
     def get_params(self):
         return [self.W, self.b]
@@ -59,7 +59,7 @@ class DenseLayer(AffineLayer):
         super(DenseLayer, self).__init__(*args, **kwargs)
 
     def get_output(self, input_var):
-        pre_activation = super(DenseLayer, input_var).get_output(input_var)
+        pre_activation = super(DenseLayer, self).get_output(input_var)
         if self.nonlinearity is None:
             return pre_activation
         else:

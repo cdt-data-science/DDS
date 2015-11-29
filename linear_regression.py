@@ -32,8 +32,9 @@ def get_errors(penalty=0):
     X = input_layer.input_var
     y = theano.tensor.matrix("y")
     prediction = lasagne.layers.get_output(output_layer)
+    hard_prediction = theano.tensor.round(prediction)
     mse = theano.tensor.mean((y-prediction)**2)
-
+    accuracy = theano.tensor.mean(theano.tensor.eq(y,hard_prediction))
     L1_penalty = penalty*lasagne.regularization.regularize_layer_params(output_layer, lasagne.regularization.l1)
     cost = mse+L1_penalty
     lower_index, upper_index = theano.tensor.lscalar("lower_index"), theano.tensor.lscalar("upper_index")
@@ -49,16 +50,18 @@ def get_errors(penalty=0):
                                         y:train_y[lower_index:upper_index,:]})
 
     get_cost = theano.function(inputs=[X,y], outputs=mse)
+    get_acc = theano.function(inputs=[X,y], outputs=accuracy)
 
     #Training time.
 
-    n_epochs = 1000
-    mini_batch_size = 1000
+    n_epochs = 10000
+    mini_batch_size = 3000
     costs = []
     for epoch in range(n_epochs):
         current_cost = get_cost(val_X.get_value(borrow=True), val_y.get_value(borrow=True))
         costs.append(current_cost)
-        print "Epoch: %s, Validation MSE: %s" % (epoch, current_cost)
+        a = get_acc(val_X.get_value(borrow=True), val_y.get_value(borrow=True))
+        print "Epoch: %s, Validation MSE: %s Accuracy: %s" % (epoch, current_cost, a)
         for index in range(0,N,mini_batch_size ):
             train_foo(index,index+mini_batch_size)
 
@@ -78,7 +81,7 @@ def get_errors(penalty=0):
         helper.plot_image(W)
 
 
-penalties = [0.1,0.01,0.001, 0.0001,0]
+penalties = [0]
 
 costs = [get_errors(penalty) for penalty in penalties]
 fig, ax = plt.subplots(1,1)

@@ -11,14 +11,17 @@ def binary_cross_entropy(target, prediction):
     return T.nnet.binary_crossentropy(prediction,target).mean()
 
 def categorical_cross_entropy(target,prediction):
-    return T.nnet.categorical_crossentropy(prediction,target).mean()
+    target = T.extra_ops.to_one_hot(target[:,0],prediction.shape[1])
+    return - T.sum(target*T.log(prediction), axis=1).mean()
+
 
 def binary_accuracy(target, prediction, threshold=0.5):
     return T.eq(target, T.ge(prediction, threshold)).mean()
 
 def categorical_accuracy(target,prediction):
-    targets = T.argmax(target, axis=1)
+    # target = T.extra_ops.to_one_hot(target,prediction.shape[1])
+    # target = T.argmax(target, axis=1)
     predictions = T.argmax(prediction, axis=1)
-    return T.eq(targets, predictions).mean()
+    return T.eq(target, predictions.dimshuffle(0,"x")).mean()
 
 
